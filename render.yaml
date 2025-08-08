@@ -3,19 +3,7 @@ services:
     name: babcock-smart-campus-frontend
     env: static
     plan: free
-    buildCommand: |
-      # Install Flutter
-      git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
-      export PATH="$HOME/flutter/bin:$PATH"
-      
-      # Enable web support
-      flutter config --enable-web
-      
-      # Get dependencies
-      flutter pub get
-      
-      # Build for web
-      flutter build web --release --web-renderer html
+    buildCommand: git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter && export PATH="$HOME/flutter/bin:$PATH" && flutter config --enable-web && flutter pub get && flutter build web --release --web-renderer html
     staticPublishPath: ./build/web
     routes:
       - type: rewrite
