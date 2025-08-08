@@ -5,19 +5,13 @@ set -e
 
 echo "🚀 Starting Flutter Web Build for Render..."
 
-# Install system dependencies
-echo "📦 Installing system dependencies..."
-sudo apt-get update
-sudo apt-get install -y curl git unzip xz-utils zip libglu1-mesa
-
 # Install Flutter
 echo "📦 Installing Flutter..."
-FLUTTER_VERSION="3.19.6"
 FLUTTER_HOME="$HOME/flutter"
 
 # Download Flutter if not already installed
 if [ ! -d "$FLUTTER_HOME" ]; then
-    echo "⬇️ Downloading Flutter $FLUTTER_VERSION..."
+    echo "⬇️ Downloading Flutter..."
     git clone https://github.com/flutter/flutter.git -b stable $FLUTTER_HOME
 fi
 
