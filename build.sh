@@ -32,7 +32,7 @@ flutter pub get
 
 # Build for web
 echo "🔨 Building for web..."
-flutter build web --release --web-renderer html
+flutter build web --release
 
 echo "🎉 Build completed successfully!"
 echo "📁 Build output: build/web/" 
