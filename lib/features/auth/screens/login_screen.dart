@@ -17,6 +17,15 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isDemoMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set default test credentials
+    _emailController.text = 'test@babcock.edu';
+    _passwordController.text = 'test123';
+  }
 
   @override
   void dispose() {
@@ -29,22 +38,79 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final success = await authProvider.login(
-      _emailController.text.trim(),
-      _passwordController.text,
+    
+    if (_isDemoMode) {
+      // Demo mode - bypass backend
+      await _demoLogin();
+    } else {
+      // Normal login
+      final success = await authProvider.login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+
+      if (success && mounted) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authProvider.error ?? 'Login failed'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _demoLogin() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    // Show loading
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Logging in with demo credentials...'),
+        backgroundColor: Colors.blue,
+      ),
     );
 
-    if (success && mounted) {
-      // Navigate to home screen
+    // Simulate API delay
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Create demo user data
+    final demoUser = {
+      'id': 1,
+      'student_id': 'BU/2024/001',
+      'email': 'test@babcock.edu',
+      'full_name': 'Demo Student',
+      'department': 'Computer Science',
+      'level': '300',
+      'phone_number': '+2348012345678',
+      'profile_picture': null,
+      'is_active': true,
+      'is_verified': true,
+      'created_at': DateTime.now().toIso8601String(),
+    };
+
+    // Set demo token and user
+    await authProvider.setDemoMode(demoUser);
+
+    if (mounted) {
       Navigator.of(context).pushReplacementNamed('/home');
-    } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.error ?? 'Login failed'),
-          backgroundColor: AppTheme.errorColor,
+        const SnackBar(
+          content: Text('Demo login successful! You can now test the app features.'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
         ),
       );
     }
+  }
+
+  void _quickLogin() {
+    setState(() {
+      _emailController.text = 'test@babcock.edu';
+      _passwordController.text = 'test123';
+    });
   }
 
   @override
@@ -106,6 +172,53 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 
                 const SizedBox(height: 40),
+
+                // Demo Mode Toggle
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.blue[200]!),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.blue[700], size: 24),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Demo Mode',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue[700],
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              'Toggle to test the app without backend',
+                              style: TextStyle(
+                                color: Colors.blue[600],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _isDemoMode,
+                        onChanged: (value) {
+                          setState(() => _isDemoMode = value);
+                        },
+                        activeColor: Colors.blue[700],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
                 
                 // Email Field
                 TextFormField(
@@ -160,6 +273,36 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 
                 const SizedBox(height: 30),
+
+                // Quick Login Button
+                if (!_isDemoMode)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    child: OutlinedButton(
+                      onPressed: _quickLogin,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: BorderSide(color: AppTheme.primaryColor),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.bolt, color: AppTheme.primaryColor, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Quick Login (Test Credentials)',
+                            style: TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 
                 // Login Button
                 Consumer<AuthProvider>(
@@ -168,6 +311,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: authProvider.isLoading ? null : _login,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: _isDemoMode ? Colors.blue[700] : AppTheme.primaryColor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -181,11 +325,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
-                          : const Text(
-                              'Sign In',
-                              style: TextStyle(
+                          : Text(
+                              _isDemoMode ? 'Demo Login' : 'Sign In',
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
+                                color: Colors.white,
                               ),
                             ),
                     );

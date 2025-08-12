@@ -12,6 +12,31 @@ A Flutter app for the Babcock University Smart Campus system.
 - Chat system for classmates
 - User profile management
 
+## Testing with Default Login
+
+The app now includes a **Demo Mode** for easy testing without backend connection:
+
+### Quick Login (Test Credentials)
+- **Email:** `test@babcock.edu`
+- **Password:** `test123`
+
+### Demo Mode Features
+1. **Toggle Demo Mode** on the login screen
+2. **Bypass Backend** - Test all app features without server connection
+3. **Demo Data** - Pre-populated with realistic campus information
+4. **Easy Testing** - No need to set up backend or database
+
+### How to Use Demo Mode
+1. Open the app
+2. On the login screen, toggle "Demo Mode" to ON
+3. Click "Demo Login" button
+4. You'll see a blue "Demo Mode" banner at the top
+5. Test all features: Maps, Attendance, Schedule, Cafeteria, etc.
+
+### Exiting Demo Mode
+- Use the logout button (profile icon in top-right corner)
+- Log in with real credentials when backend is available
+
 ## Setup for Railway Deployment
 
 ### Prerequisites
@@ -78,4 +103,16 @@ flutter build ios --release
 
 1. **Network Error:** Make sure the backend URL is correct in `app_constants.dart`
 2. **CORS Error:** Ensure your Railway backend has CORS properly configured
-3. **Build Errors:** Run `flutter clean` and `flutter pub get` before building 
+3. **Build Errors:** Run `flutter clean` and `flutter pub get` before building
+4. **Demo Mode Issues:** If demo mode doesn't work, try logging out and back in
+5. **Maps Not Loading:** Ensure you have proper Google Maps API keys configured
+
+## Demo Data Included
+
+The app comes with sample data for testing:
+
+- **Campus Locations:** Library, Student Center, Cafeteria, Admin Building, Science Complex
+- **Sample Schedules:** Computer Science, Mathematics, Physics classes
+- **Cafeteria Menu:** Breakfast, Lunch, Dinner items
+- **Attendance Records:** Sample attendance data
+- **User Profile:** Demo student information 

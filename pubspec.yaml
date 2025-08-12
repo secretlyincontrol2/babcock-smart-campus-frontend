@@ -31,6 +31,7 @@ dependencies:
   permission_handler: ^11.4.0
   connectivity_plus: ^5.0.2
   flutter_native_splash: ^2.4.4
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -38,4 +39,7 @@ dev_dependencies:
   flutter_lints: ^3.0.2
 
 flutter:
-  uses-material-design: true 
+  uses-material-design: true
+  
+  assets:
+    - assets/animations/ 

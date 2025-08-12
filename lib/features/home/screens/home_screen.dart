@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:lottie/lottie.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
+import 'tabs/dashboard_tab.dart';
+import 'tabs/attendance_tab.dart';
+import 'tabs/schedule_tab.dart';
+import 'tabs/cafeteria_tab.dart';
+import 'tabs/maps_tab.dart';
+import 'tabs/chat_tab.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,8 +19,11 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _currentIndex = 0;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   final List<Widget> _screens = [
     const DashboardTab(),
@@ -24,355 +35,209 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0.1, 0.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic,
+    ));
+    
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _onTabChanged(int index) {
           setState(() {
             _currentIndex = index;
           });
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppTheme.primaryColor,
-        unselectedItemColor: AppTheme.textSecondary,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code_scanner),
-            label: 'Attendance',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.schedule),
-            label: 'Schedule',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant),
-            label: 'Cafeteria',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'Maps',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat',
-          ),
-        ],
-      ),
-    );
+    
+    // Restart animation for smooth transitions
+    _animationController.reset();
+    _animationController.forward();
   }
-}
-
-class DashboardTab extends StatelessWidget {
-  const DashboardTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<AuthProvider>(context).user;
-    
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Smart Campus'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              // Navigate to profile
+      body: Column(
+        children: [
+          // Demo Mode Banner
+          Consumer<AuthProvider>(
+            builder: (context, authProvider, child) {
+              if (authProvider.token?.startsWith('demo_token_') == true) {
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[600],
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Demo Mode - Testing without backend connection',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text('Demo Mode'),
+                              content: Text(
+                                'You are currently in demo mode. This allows you to test the app features without connecting to the backend server.\n\n'
+                                'To exit demo mode, log out and log in with real credentials.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: Text('OK'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        icon: Icon(
+                          Icons.help_outline,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await Provider.of<AuthProvider>(context, listen: false).logout();
-              if (context.mounted) {
-                Navigator.of(context).pushReplacementNamed('/login');
-              }
-            },
+          // Main Content
+          Expanded(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: _screens[_currentIndex],
+              ),
+            ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Welcome Card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundColor: AppTheme.primaryColor,
-                          child: Text(
-                            user?.fullName.substring(0, 1).toUpperCase() ?? 'S',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Welcome back!',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: AppTheme.textSecondary,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                user?.fullName ?? 'Student',
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                '${user?.department} - Level ${user?.level}',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppTheme.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Quick Actions
-            Text(
-              'Quick Actions',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              children: [
-                _buildActionCard(
-                  context,
-                  'Scan QR Code',
-                  Icons.qr_code_scanner,
-                  AppTheme.primaryColor,
-                  () {
-                    // Navigate to QR scanner
-                  },
-                ),
-                _buildActionCard(
-                  context,
-                  'Today\'s Schedule',
-                  Icons.schedule,
-                  AppTheme.secondaryColor,
-                  () {
-                    // Navigate to schedule
-                  },
-                ),
-                _buildActionCard(
-                  context,
-                  'Campus Map',
-                  Icons.map,
-                  AppTheme.successColor,
-                  () {
-                    // Navigate to maps
-                  },
-                ),
-                _buildActionCard(
-                  context,
-                  'Cafeteria Menu',
-                  Icons.restaurant,
-                  AppTheme.warningColor,
-                  () {
-                    // Navigate to cafeteria
-                  },
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Recent Activity
-            Text(
-              'Recent Activity',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            Card(
-              child: ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: 3,
-                separatorBuilder: (context, index) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final activities = [
-                    {'title': 'Attendance Marked', 'subtitle': 'Computer Science 101', 'time': '2 hours ago'},
-                    {'title': 'Class Reminder', 'subtitle': 'Mathematics 201 in 15 minutes', 'time': '1 hour ago'},
-                    {'title': 'New Message', 'subtitle': 'From John Doe in CS Group', 'time': '30 minutes ago'},
-                  ];
-                  
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-                      child: Icon(
-                        index == 0 ? Icons.check_circle : index == 1 ? Icons.notifications : Icons.message,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ),
-                    title: Text(activities[index]['title']!),
-                    subtitle: Text(activities[index]['subtitle']!),
-                    trailing: Text(
-                      activities[index]['time']!,
-                      style: TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+      bottomNavigationBar: _buildAnimatedBottomNav(),
     );
   }
 
-  Widget _buildActionCard(
-    BuildContext context,
-    String title,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return Card(
-      elevation: 2,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  icon,
-                  size: 30,
-                  color: color,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-                textAlign: TextAlign.center,
-              ),
+  Widget _buildAnimatedBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: SafeArea(
+              child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+              _buildNavItem(0, Icons.dashboard_rounded, 'Dashboard'),
+              _buildNavItem(1, Icons.qr_code_scanner_rounded, 'Attendance'),
+              _buildNavItem(2, Icons.schedule_rounded, 'Schedule'),
+              _buildNavItem(3, Icons.restaurant_rounded, 'Cafeteria'),
+              _buildNavItem(4, Icons.map_rounded, 'Maps'),
+              _buildNavItem(5, Icons.chat_bubble_rounded, 'Chat'),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class AttendanceTab extends StatelessWidget {
-  const AttendanceTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('Attendance Tab - Coming Soon!'),
-      ),
-    );
-  }
-}
-
-class ScheduleTab extends StatelessWidget {
-  const ScheduleTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('Schedule Tab - Coming Soon!'),
-      ),
-    );
-  }
-}
-
-class CafeteriaTab extends StatelessWidget {
-  const CafeteriaTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('Cafeteria Tab - Coming Soon!'),
-      ),
-    );
-  }
-}
-
-class MapsTab extends StatelessWidget {
-  const MapsTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('Maps Tab - Coming Soon!'),
-      ),
-    );
-  }
-}
-
-class ChatTab extends StatelessWidget {
-  const ChatTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('Chat Tab - Coming Soon!'),
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    final isSelected = _currentIndex == index;
+    
+    return GestureDetector(
+      onTap: () => _onTabChanged(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+          child: Column(
+          mainAxisSize: MainAxisSize.min,
+            children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              padding: EdgeInsets.all(isSelected ? 8 : 4),
+                decoration: BoxDecoration(
+                color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                size: isSelected ? 24 : 20,
+                color: isSelected ? Colors.white : AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: TextStyle(
+                fontSize: isSelected ? 12 : 10,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
+              ),
+              child: Text(label),
+              ),
+            ],
+          ),
       ),
     );
   }

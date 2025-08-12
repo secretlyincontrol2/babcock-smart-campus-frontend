@@ -151,11 +151,6 @@ class AuthProvider extends ChangeNotifier {
       });
 
       _user = updatedUser;
-      
-      // Update stored user data
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(AppConstants.userKey, updatedUser.toJson().toString());
-
       _isLoading = false;
       notifyListeners();
       return true;
@@ -164,6 +159,38 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  // Demo mode for testing
+  Future<void> setDemoMode(Map<String, dynamic> demoUserData) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      // Create demo user
+      _user = UserModel.fromJson(demoUserData);
+      
+      // Create demo token
+      _token = 'demo_token_${DateTime.now().millisecondsSinceEpoch}';
+      
+      // Store demo data
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(AppConstants.userKey, demoUserData.toString());
+      await prefs.setBool(AppConstants.isLoggedInKey, true);
+      
+      // Store demo token in secure storage
+      await _secureStorage.write(
+        key: AppConstants.tokenKey,
+        value: _token,
+      );
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
