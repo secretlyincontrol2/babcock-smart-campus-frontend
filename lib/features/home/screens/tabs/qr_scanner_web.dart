@@ -1,11 +1,28 @@
 // Web QR Scanner implementation
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 // Web-compatible QR scanner classes
 class QRViewController {
-  void dispose() {}
+  StreamController<String>? _scannedDataController;
+  
+  QRViewController() {
+    _scannedDataController = StreamController<String>.broadcast();
+  }
+
+  Stream<String> get scannedDataStream => _scannedDataController?.stream ?? Stream.empty();
+  
+  void dispose() {
+    _scannedDataController?.close();
+  }
+  
   void resumeCamera() {}
   void pauseCamera() {}
+  
+  // Method to simulate QR scan for demo
+  void simulateScan(String data) {
+    _scannedDataController?.add(data);
+  }
 }
 
 class QrScannerOverlayShape extends CustomPainter {
@@ -13,19 +30,23 @@ class QrScannerOverlayShape extends CustomPainter {
   final double borderWidth;
   final Color overlayColor;
   final double borderRadius;
+  final double borderLength;
+  final double cutOutSize;
 
   QrScannerOverlayShape({
     this.borderColor = Colors.white,
     this.borderWidth = 3.0,
     this.overlayColor = const Color.fromRGBO(0, 0, 0, 80),
     this.borderRadius = 0,
+    this.borderLength = 30,
+    this.cutOutSize = 300,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final width = size.width;
     final height = size.height;
-    final scanAreaSize = width * 0.8;
+    final scanAreaSize = cutOutSize;
 
     final scanAreaRect = Rect.fromLTWH(
       (width - scanAreaSize) / 2,
@@ -110,6 +131,11 @@ class QRView extends StatelessWidget {
                   // Create a mock QR controller
                   final mockController = QRViewController();
                   onQRViewCreated!(mockController);
+                  
+                  // Simulate a scan after a short delay
+                  Future.delayed(const Duration(seconds: 1), () {
+                    mockController.simulateScan('DEMO_QR_CODE_${DateTime.now().millisecondsSinceEpoch}');
+                  });
                 }
               },
               child: const Text('Demo QR Scan'),
