@@ -5,10 +5,8 @@ services:
     region: oregon
     plan: free
     buildCommand: |
-      export PATH="$HOME/flutter/bin:$PATH"
-      flutter config --enable-web
-      flutter pub get
-      flutter build web --release
+      chmod +x build.sh
+      ./build.sh
     staticPublishPath: ./build/web
     envVars:
       - key: FLUTTER_VERSION
