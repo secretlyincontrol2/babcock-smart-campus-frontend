@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:lottie/lottie.dart' as lottie;
 import '../../../../core/theme/app_theme.dart';
+
+// Conditional import for QR scanner (mobile only)
+import 'qr_scanner_mobile.dart' if (dart.library.html) 'qr_scanner_web.dart';
 
 class AttendanceTab extends StatefulWidget {
   const AttendanceTab({super.key});

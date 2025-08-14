@@ -52,6 +52,7 @@ class AppConstants {
   
   // Schedule Endpoints
   static const String scheduleBaseEndpoint = '/schedule';
+  static const String scheduleEndpoint = '/schedule';
   static const String scheduleCreateEndpoint = '/schedule';
   static const String scheduleUpdateEndpoint = '/schedule/{schedule_id}';
   static const String scheduleDeleteEndpoint = '/schedule/{schedule_id}';
@@ -84,6 +85,7 @@ class AppConstants {
   static const String cafeteriaQrScanEndpoint = '/cafeteria/qr-scan';
   static const String cafeteriaStatsEndpoint = '/cafeteria/stats';
   static const String cafeteriaExportEndpoint = '/cafeteria/export';
+  static const String menuCategoriesEndpoint = '/cafeteria/menu-categories';
   
   // Maps Endpoints
   static const String mapsBaseEndpoint = '/maps';
