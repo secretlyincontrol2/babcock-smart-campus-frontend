@@ -870,13 +870,6 @@ class _AttendanceTabState extends State<AttendanceTab> {
           QRView(
             key: qrKey,
             onQRViewCreated: _onQRViewCreated,
-            overlay: QrScannerOverlayShape(
-              borderColor: AppTheme.primaryColor,
-              borderRadius: 10,
-              borderLength: 30,
-              borderWidth: 10,
-              cutOutSize: 300,
-            ),
           ),
         
         // Manual attendance button

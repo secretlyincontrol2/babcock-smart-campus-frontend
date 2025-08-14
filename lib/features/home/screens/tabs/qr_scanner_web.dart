@@ -2,15 +2,22 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+// ScanResult class to match what the attendance tab expects
+class ScanResult {
+  final String? code;
+  
+  ScanResult({this.code});
+}
+
 // Web-compatible QR scanner classes
 class QRViewController {
-  StreamController<String>? _scannedDataController;
+  StreamController<ScanResult>? _scannedDataController;
   
   QRViewController() {
-    _scannedDataController = StreamController<String>.broadcast();
+    _scannedDataController = StreamController<ScanResult>.broadcast();
   }
 
-  Stream<String> get scannedDataStream => _scannedDataController?.stream ?? Stream.empty();
+  Stream<ScanResult> get scannedDataStream => _scannedDataController?.stream ?? Stream.empty();
   
   void dispose() {
     _scannedDataController?.close();
@@ -21,7 +28,7 @@ class QRViewController {
   
   // Method to simulate QR scan for demo
   void simulateScan(String data) {
-    _scannedDataController?.add(data);
+    _scannedDataController?.add(ScanResult(code: data));
   }
 }
 
@@ -80,12 +87,10 @@ class QrScannerOverlayShape extends CustomPainter {
 class QRView extends StatelessWidget {
   final GlobalKey key;
   final void Function(QRViewController)? onQRViewCreated;
-  final OverlayEntry? overlay;
 
   const QRView({
     required this.key,
     this.onQRViewCreated,
-    this.overlay,
   });
 
   @override
