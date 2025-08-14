@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: babcock-smart-campus-frontend
+    env: static
+    region: oregon
+    plan: free
+    buildCommand: |
+      export PATH="$HOME/flutter/bin:$PATH"
+      flutter config --enable-web
+      flutter pub get
+      flutter build web --release
+    staticPublishPath: ./build/web
+    envVars:
+      - key: FLUTTER_VERSION
+        value: stable
+      - key: WEB_RENDERER
+        value: html
+    healthCheckPath: /
+    autoDeploy: true
+    branch: main

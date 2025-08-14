@@ -73,34 +73,23 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
 
-    // Simulate API delay
-    await Future.delayed(const Duration(seconds: 1));
+    // Use the new demoLogin method from AuthProvider
+    final success = await authProvider.demoLogin();
 
-    // Create demo user data
-    final demoUser = {
-      'id': 1,
-      'student_id': 'BU/2024/001',
-      'email': 'test@babcock.edu',
-      'full_name': 'Demo Student',
-      'department': 'Computer Science',
-      'level': '300',
-      'phone_number': '+2348012345678',
-      'profile_picture': null,
-      'is_active': true,
-      'is_verified': true,
-      'created_at': DateTime.now().toIso8601String(),
-    };
-
-    // Set demo token and user
-    await authProvider.setDemoMode(demoUser);
-
-    if (mounted) {
+    if (success && mounted) {
       Navigator.of(context).pushReplacementNamed('/home');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Demo login successful! You can now test the app features.'),
           backgroundColor: Colors.green,
           duration: Duration(seconds: 3),
+        ),
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.error ?? 'Demo login failed'),
+          backgroundColor: AppTheme.errorColor,
         ),
       );
     }
@@ -181,39 +170,68 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.blue[200]!),
                   ),
-                  child: Row(
+                  child: Column(
                     children: [
-                      Icon(Icons.info_outline, color: Colors.blue[700], size: 24),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Demo Mode',
+                      Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.blue[700], size: 24),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Demo Mode',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue[700],
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                Text(
+                                  'Toggle to test the app without backend',
+                                  style: TextStyle(
+                                    color: Colors.blue[600],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: _isDemoMode,
+                            onChanged: (value) {
+                              setState(() => _isDemoMode = value);
+                            },
+                            activeColor: Colors.blue[700],
+                          ),
+                        ],
+                      ),
+                      if (_isDemoMode) ...[
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _demoLogin,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green[600],
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            icon: const Icon(Icons.play_arrow, color: Colors.white),
+                            label: const Text(
+                              '🚀 Try Demo Login Now!',
                               style: TextStyle(
+                                color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue[700],
                                 fontSize: 16,
                               ),
                             ),
-                            Text(
-                              'Toggle to test the app without backend',
-                              style: TextStyle(
-                                color: Colors.blue[600],
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                      Switch(
-                        value: _isDemoMode,
-                        onChanged: (value) {
-                          setState(() => _isDemoMode = value);
-                        },
-                        activeColor: Colors.blue[700],
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -282,16 +300,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _quickLogin,
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide(color: AppTheme.primaryColor),
+                        side: const BorderSide(color: AppTheme.primaryColor),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.bolt, color: AppTheme.primaryColor, size: 20),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Text(
                             'Quick Login (Test Credentials)',
                             style: TextStyle(
@@ -343,7 +361,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    const Text(
                       "Don't have an account? ",
                       style: TextStyle(color: AppTheme.textSecondary),
                     ),
@@ -375,22 +393,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey[200]!),
                   ),
-                  child: Column(
+                  child: const Column(
                     children: [
                       Icon(
                         Icons.school,
                         size: 32,
                         color: AppTheme.primaryColor,
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
                         AppConstants.universityName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         'Smart Campus App',
                         style: TextStyle(

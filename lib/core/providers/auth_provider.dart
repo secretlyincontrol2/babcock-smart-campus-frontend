@@ -103,6 +103,56 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // Demo Login - No authentication required
+  Future<bool> demoLogin() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      // Create demo user data
+      final demoUser = UserModel(
+        id: 999999,
+        email: 'demo@babcock.edu.ng',
+        fullName: 'Demo Student',
+        studentId: 'BU22-2130',
+        department: 'Computer Science',
+        level: '300',
+        phoneNumber: '+2348012345678',
+        profilePicture: null,
+        isActive: true,
+        isVerified: true,
+        createdAt: DateTime.now(),
+      );
+
+      // Create demo token (not a real JWT, just for demo purposes)
+      final demoToken = 'demo_token_${DateTime.now().millisecondsSinceEpoch}';
+
+      _token = demoToken;
+      _user = demoUser;
+
+      // Store demo token (not secure, just for demo)
+      await _secureStorage.write(
+        key: AppConstants.tokenKey,
+        value: _token,
+      );
+
+      // Store user data
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(AppConstants.userKey, demoUser.toJson().toString());
+      await prefs.setBool(AppConstants.isLoggedInKey, true);
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   // Logout
   Future<void> logout() async {
     _isLoading = true;
